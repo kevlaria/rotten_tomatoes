@@ -175,10 +175,10 @@ class Polarity_And_Subjectivity(StatelessTransform):
     def _add_polarity_and_subjectivity(self, phrase):
         blob = TextBlob(phrase)
         if len(blob.sentences) == 0:
-            polarity = 0
+            polarity = 2
             subjectivity = 0.5
         else:
-            polarity = blob.sentences[0].sentiment.polarity
+            polarity = blob.sentences[0].sentiment.polarity + 2 # to prevent negative polarity for Naive Bayes
             subjectivity = blob.sentences[0].sentiment.subjectivity
         return [polarity, subjectivity]
 

@@ -12,6 +12,9 @@ from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.pipeline import make_pipeline, make_union
 from sklearn.metrics import accuracy_score
 from sklearn.metrics.pairwise import cosine_similarity
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import GradientBoostingClassifier
 
 
 from samr.transformations import (ExtractText, ReplaceText, MapToSynsets, POSTagger, SentimentChangerTagger,
@@ -26,6 +29,9 @@ _valid_classifiers = {
     "knn": KNeighborsClassifier,
     "svc": SVC,
     "randomforest": RandomForestClassifier,
+    "naiveBayes": GaussianNB,
+    "adaBoost": AdaBoostClassifier,
+    "gradientBoosting": GradientBoostingClassifier
 }
 
 
@@ -59,7 +65,7 @@ class PhraseSentimentPredictor:
     def __init__(self, classifier="sgd", classifier_args=None, lowercase=True,
                  text_replacements=None, map_to_synsets=False, binary=False,
                  min_df=0, ngram=1, stopwords=None, limit_train=None,
-                 map_to_lex=False, duplicates=False, pos_tagger=False, sentiment_changer_tagger=False):
+                 map_to_lex=False, duplicates=False, pos_tagger=False, sentiment_changer_tagger=False, polarity_subjectivity=False):
         """
         Parameter description:
             - `classifier`: The type of classifier used as main classifier,
@@ -113,7 +119,8 @@ class PhraseSentimentPredictor:
             ext.append(build_synset_extraction(binary=binary, min_df=min_df,
                                                ngram=ngram))
 
-        ext.append(build_polarity_subjectivity())
+        if polarity_subjectivity:
+            ext.append(build_polarity_subjectivity())
 
         if map_to_lex:
             ext.append(build_lex_extraction(binary=binary, min_df=min_df,

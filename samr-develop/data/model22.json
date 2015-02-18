@@ -1,0 +1,9 @@
+{"classifier":"svc",
+ "classifier_args":{"C": 0.1, "kernel":"rbf", "gamma":0.5},
+ "lowercase":"true",
+ "map_to_synsets":"true",
+ "map_to_lex":"true",
+ "duplicates":"true",
+ "pos_tagger":"true",
+ "sentiment_changer_tagger":"true"
+}

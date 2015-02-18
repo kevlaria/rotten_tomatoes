@@ -11,6 +11,9 @@ from sklearn.multiclass import fit_ovo
 import nltk
 from nltk import pos_tag
 from nltk.tokenize import word_tokenize
+from nltk.chunk import RegexpParser
+
+from textblob import TextBlob
 
 from corpus import importCSV
 
@@ -116,10 +119,29 @@ class POSTagger(StatelessTransform):
         return returnVal
 
     def _tag_sentences(self, text):
+
         word_tuples = pos_tag(word_tokenize(text))
-        # each word tuple is in the form ("word", "part of speech")
-        result = [x[1] for x in word_tuples]
-        return " ".join(result)
+
+        grammar = """
+            NP: {<DT>? <JJ>* <NN>* | <PRP>?<JJ.*>*<NN.*>+}
+            P: {<IN>}
+            V: {<V.* | VB.*>}
+            PP: {<P> <NP>}
+            VP: {<V> <NP|PP>*}
+            CP:   {<JJR|JJS>}
+            THAN: {<IN>}
+            COMP: {<DT>?<NP><RB>?<VERB><DT>?<CP><THAN><DT>?<NP>}
+            """
+        chunker = RegexpParser(grammar)
+        chunked_text = str(chunker.parse(word_tuples))
+        cleaned_chunked_text = self._clean_chunked_text(chunked_text)
+
+        return cleaned_chunked_text
+
+    def _clean_chunked_text(self, chunked_text):
+        chunked_text = re.sub(r"\n", '', chunked_text)
+        chunked_text = re.sub(r" '?\w+/", ' ', chunked_text)
+        return chunked_text
 
 class SentimentChangerTagger(StatelessTransform):
     def transform(self, X):
@@ -144,7 +166,21 @@ class SentimentChangerTagger(StatelessTransform):
         results = [type for x in sentiment_list if x.strip().lower() in phrase.lower()]
         return " ".join(results)
 
+class Polarity_And_Subjectivity(StatelessTransform):
+    def transform(self, X):
+        print "Adding polarity and subjectivity"
+        returnVal = [self._add_polarity_and_subjectivity(x) for x in X]
+        return returnVal
 
+    def _add_polarity_and_subjectivity(self, phrase):
+        blob = TextBlob(phrase)
+        if len(blob.sentences) == 0:
+            polarity = 0
+            subjectivity = 0.5
+        else:
+            polarity = blob.sentences[0].sentiment.polarity
+            subjectivity = blob.sentences[0].sentiment.subjectivity
+        return [polarity, subjectivity]
 
 class Densifier(StatelessTransform):
     """
